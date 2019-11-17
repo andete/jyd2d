@@ -8,4 +8,5 @@ repository = "https://github.com/andete/jyd2d"
 description = "simple data structures for drawing 2d plans"
 
 [dependencies]
-assert_approx_eq = "1.1.0"
+assert_approx_eq = "1.1"
+svg = "0.5"
