@@ -1,28 +1,28 @@
 use crate::coordinate::Coordinate;
-use svg::node::element::Element;
 use svg::node::element::path::Data;
 use svg::node::element::Path;
+use crate::svg_element::SVGElement;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Area {
     pub corners: Vec<Coordinate>,
 }
 
-impl Into<Element> for Area {
-    fn into(self) -> Element {
+impl Into<SVGElement> for Area {
+    fn into(self) -> SVGElement {
 
-        let data = Data::new();
+        let mut data = Data::new();
         assert!(self.corners.len() > 2);
-        data.move_to((corners[0].x, corners[0].y));
-        for corner in self.corners[1..] {
-            data.line_to((corner.x, corner.y));
+        data = data.move_to((self.corners[0].x, self.corners[0].y));
+        for corner in self.corners.iter().skip(1) {
+            data = data.line_to((corner.x, corner.y));
         }
-        data.close();
+        data = data.close();
 
-        Path::new()
+        SVGElement::Path(Path::new()
             .set("fill", "none")
             .set("stroke", "black")
             .set("stroke-width", 0.25)
-            .set("d", data)
+            .set("d", data))
     }
 }
