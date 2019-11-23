@@ -31,14 +31,15 @@ impl Area {
 }
 
 impl WriteToSvg for Area {
-    fn write<T: Write>(&self, mut out: &mut T) -> Result<(), Error> {
+    fn write<T: Write>(&self, indent: i16, mut out: &mut T) -> Result<(), Error> {
         let mut data = String::new();
         write!(&mut data, "M{},{} ", self.corners[0].x, self.corners[0].y).unwrap();
         self.corners.iter().skip(1).for_each(|c| {
             write!(&mut data, "L{},{} ", c.x, c.y).unwrap();
         });
         write!(&mut data, "z").unwrap();
-        write!(&mut out, "<path d=\"{}\" fill=\"{}\" stroke=\"{}\" stroke-width=\"0.25\" />",
+        self.indent(out, indent)?;
+        write!(&mut out, "<path d=\"{}\" fill=\"{}\" stroke=\"{}\" stroke-width=\"0.25\" />\n",
                data, self.fill.to_string(), self.color.to_string())
     }
 }
