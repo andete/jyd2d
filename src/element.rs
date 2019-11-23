@@ -1,27 +1,34 @@
 // (c) 2019 Joost Yervante Damad <joost@damad.be>
 
-use std::fs::File;
 use std::io;
-use std::io::Write;
 
 use crate::{Area, WriteToSvg};
+use crate::graphic::Circle;
 
 #[derive(Debug)]
 pub enum Element {
-    Area(Area)
+    Area(Area),
+    Circle(Circle),
 }
 
 impl Into<Element> for Area {
-    fn into(self: Area) -> Element {
+    fn into(self) -> Element {
         Element::Area(self)
+    }
+}
+
+impl Into<Element> for Circle {
+    fn into(self) -> Element {
+        Element::Circle(self)
     }
 }
 
 
 impl WriteToSvg for Element {
-    fn write<T: Write>(&self, indent: i16, mut out: &mut T) -> std::io::Result<()> {
+    fn write<T: io::Write>(&self, indent: i16, mut out: &mut T) -> io::Result<()> {
         match self {
-            Element::Area(area) => area.write(indent, &mut out)
+            Element::Area(area) => area.write(indent, &mut out),
+            Element::Circle(circle) => circle.write(indent, &mut out),
         }
     }
 }

@@ -3,10 +3,10 @@
 use std::io;
 use std::io::Write;
 
+use crate::{Circle, WriteToSvg};
 use crate::color::Color;
 use crate::coordinate::Coordinate;
 use crate::text::{Description, Label, Title};
-use crate::WriteToSvg;
 
 #[derive(Debug)]
 pub struct Tree {
@@ -21,10 +21,18 @@ pub struct Tree {
 impl WriteToSvg for Tree {
     fn write<T: Write>(&self, indent: i16, mut out: &mut T) -> Result<(), io::Error> {
         self.indent(&mut out, indent)?;
-        write!(&mut out, "<g>\n")?;
+        write!(&mut out, "<g stroke-width=\"0.2\" id=\"tree-{}\">\n", self.name)?;
         Label::new(self.label_location, &self.name, 1.0).write(indent + 1, &mut out)?;
         Title(format!("Tree {}", self.name)).write(indent + 1, &mut out)?;
         Description(format!("Tree {}", self.name)).write(indent + 1, &mut out)?;
+        self.crown_diameter.map(|d| {
+            Circle::new(self.location.x, self.location.y, d / 2.0,
+                        Color::Green, Color::DarkGreen)
+                .write(indent + 1, &mut out)
+        });
+        Circle::new(self.location.x, self.location.y, self.trunk_diameter / 2.0,
+                    Color::Brown, Color::Maroon)
+            .write(indent + 1, &mut out)?;
         self.indent(&mut out, indent)?;
         write!(&mut out, "</g>\n")
     }

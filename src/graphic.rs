@@ -1,11 +1,11 @@
 // (c) 2019 Joost Yervante Damad <joost@damad.be>
 
 use std::fmt::Write as FmtWrite;
-use std::io::{Error, Write};
 use std::io;
+use std::io::Write;
 
 use crate::color::Color;
-use crate::coordinate::{Coordinate, Coordinates};
+use crate::coordinate::Coordinates;
 use crate::WriteToSvg;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -45,5 +45,28 @@ impl WriteToSvg for Area {
         self.indent(out, indent)?;
         write!(&mut out, "<path d=\"{}\" fill=\"{}\" stroke=\"{}\" stroke-width=\"0.25\" />\n",
                data, self.fill.to_string(), self.color.to_string())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Circle {
+    pub cx: f64,
+    pub cy: f64,
+    pub r: f64,
+    pub color: Color,
+    pub fill: Color,
+}
+
+impl Circle {
+    pub fn new(cx: f64, cy: f64, r: f64, color: Color, fill: Color) -> Circle {
+        Circle { cx, cy, r, color, fill }
+    }
+}
+
+impl WriteToSvg for Circle {
+    fn write<T: io::Write>(&self, indent: i16, mut out: &mut T) -> Result<(), io::Error> {
+        self.indent(out, indent)?;
+        write!(&mut out, "<circle r=\"{}\" cx=\"{}\" cy=\"{}\" fill=\"{}\" stroke=\"{}\" stroke-width=\"0.25\" />\n",
+               self.r, self.cx, self.cy, self.fill.to_string(), self.color.to_string())
     }
 }

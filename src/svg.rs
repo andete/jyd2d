@@ -16,6 +16,15 @@ pub trait WriteToSvg {
     }
 }
 
+#[derive(Debug, Default)]
+pub struct Children(Vec<Element>);
+
+impl Children {
+    pub fn add<T: Into<Element>>(&mut self, element: T) {
+        self.0.push(element.into())
+    }
+}
+
 pub struct Document {
     pub min_x: f64,
     pub min_y: f64,
@@ -23,16 +32,12 @@ pub struct Document {
     pub height: f64,
     pub pixel_width: i64,
     pub pixel_height: i64,
-    elements: Vec<Element>,
+    pub children: Children,
 }
 
 impl Document {
     pub fn new(min_x: f64, min_y: f64, width: f64, height: f64, pixel_width: i64, pixel_height: i64) -> Document {
-        Document { min_x, min_y, width, height, pixel_width, pixel_height, elements: vec![] }
-    }
-
-    pub fn add<T: Into<Element>>(&mut self, element: T) {
-        self.elements.push(element.into())
+        Document { min_x, min_y, width, height, pixel_width, pixel_height, children: Children::default() }
     }
 
     pub fn save(&self, filename: &str) -> std::io::Result<()> {
@@ -49,10 +54,17 @@ impl WriteToSvg for Document {
                self.width,
                self.height,
                view_box)?;
-        for x in &self.elements {
-            x.write(indent + 1, &mut out)?;
-        }
+        self.children.write(indent + 1, &mut out)?;
         self.indent(out, indent)?;
         write!(out, "</svg>\n")
+    }
+}
+
+impl WriteToSvg for Children {
+    fn write<T: io::Write>(&self, indent: i16, mut out: &mut T) -> io::Result<()> {
+        for x in &self.0 {
+            x.write(indent, &mut out)?;
+        }
+        Ok(())
     }
 }

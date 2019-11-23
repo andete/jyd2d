@@ -1,7 +1,7 @@
 // (c) 2019 Joost Yervante Damad <joost@damad.be>
 
-use std::io::{Error, Write};
 use std::io;
+use std::io::Write;
 
 use crate::coordinate::Coordinate;
 use crate::WriteToSvg;
