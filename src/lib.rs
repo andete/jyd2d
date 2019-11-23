@@ -1,5 +1,11 @@
 // (c) 2019 Joost Yervante Damad <joost@damad.be>
 
+pub use area::Area;
+pub use color::Color;
+pub use coordinate::Coordinate;
+pub use label::Label;
+pub use svg_document::Document;
+
 pub mod area;
 pub mod color;
 pub mod coordinate;

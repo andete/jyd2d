@@ -1,9 +1,9 @@
-use svg::Node;
-use svg::node::element::Path;
-use svg::node::element::path::Data;
+use std::fmt::Write as FmtWrite;
+use std::io::{Error, Write};
 
 use crate::color::Color;
 use crate::coordinate::Coordinate;
+use crate::svg_document::WriteToSvg;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Area {
@@ -13,11 +13,11 @@ pub struct Area {
 }
 
 impl Area {
-    fn new(corners: Vec<Coordinate>) -> Area {
+    pub fn new(corners: Vec<Coordinate>) -> Area {
         Area { corners, color: Color::Black, fill: Color::None }
     }
 
-    fn new_with_color(corners: Vec<Coordinate>, color: Color) -> Area {
+    pub fn new_with_color(corners: Vec<Coordinate>, color: Color) -> Area {
         Area {
             corners,
             color,
@@ -25,24 +25,20 @@ impl Area {
         }
     }
 
-    fn new_filled(corners: Vec<Coordinate>, color: Color, fill: Color) -> Area {
+    pub fn new_filled(corners: Vec<Coordinate>, color: Color, fill: Color) -> Area {
         Area { corners, color, fill }
     }
 }
 
-impl Into<Box<dyn Node>> for Area {
-    fn into(self) -> Box<dyn Node> {
-        let mut data = Data::new();
-        assert!(self.corners.len() > 2);
-        data = data.move_to((self.corners[0].x, self.corners[0].y));
-        for corner in self.corners.iter().skip(1) {
-            data = data.line_to((corner.x, corner.y));
-        }
-
-        Box::new(Path::new()
-            .set("fill", self.fill.to_string())
-            .set("stroke", self.color.to_string())
-            .set("stroke-width", 0.25)
-            .set("d", data))
+impl WriteToSvg for Area {
+    fn write<T: Write>(&self, mut out: &mut T) -> Result<(), Error> {
+        let mut data = String::new();
+        write!(&mut data, "M{},{} ", self.corners[0].x, self.corners[0].y).unwrap();
+        self.corners.iter().skip(1).for_each(|c| {
+            write!(&mut data, "L{},{} ", c.x, c.y).unwrap();
+        });
+        write!(&mut data, "z").unwrap();
+        write!(&mut out, "<path d=\"{}\" fill=\"{}\" stroke=\"{}\" stroke-width=\"0.25\" />",
+               data, self.fill.to_string(), self.color.to_string())
     }
 }

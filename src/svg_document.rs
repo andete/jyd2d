@@ -1,33 +1,63 @@
 // (c) 2019 Joost Yervante Damad <joost@damad.be>
 
-use svg::{Node, Document};
+use std::fs::File;
+use std::io::Write;
+
+use crate::Area;
+
+pub trait WriteToSvg {
+    fn write<T: Write>(&self, out: &mut T) -> std::io::Result<()>;
+}
 
 #[derive(Debug)]
-pub struct SVGDocument {
+pub enum Element {
+    Area(Area)
+}
+
+pub struct Document {
     pub min_x: f64,
     pub min_y: f64,
     pub width: f64,
     pub height: f64,
-    pub pixel_width: f64,
-    pub pixel_height: f64,
-    document: Document,
+    pub pixel_width: i64,
+    pub pixel_height: i64,
+    elements: Vec<Element>,
 }
 
-impl SVGDocument {
-    pub fn new(min_x: f64, min_y: f64, width: f64, height: f64, pixel_width: f64, pixel_height: f64) -> SVGDocument {
-        let document = Document::new()
-            .set("viewBox", (min_x, min_y, width, height))
-            .set("width", pixel_width)
-            .set("height", pixel_height)
-            .set("preserveAspectRatio", "xMinYMax");
-        SVGDocument { min_x, min_y, width, height, pixel_width, pixel_height, document }
+impl WriteToSvg for Element {
+    fn write<T: Write>(&self, mut out: &mut T) -> std::io::Result<()> {
+        match self {
+            Element::Area(area) => area.write(&mut out)
+        }
+    }
+}
+
+
+impl Document {
+    pub fn new(min_x: f64, min_y: f64, width: f64, height: f64, pixel_width: i64, pixel_height: i64) -> Document {
+        Document { min_x, min_y, width, height, pixel_width, pixel_height, elements: vec![] }
     }
 
-    pub fn add<T:Node>(mut self, element: T) {
-        self.document = self.document.add(element);
+    pub fn add(&mut self, element: Element) {
+        self.elements.push(element)
     }
 
     pub fn save(&self, filename: &str) -> std::io::Result<()> {
-        svg::save(filename, &self.document)
+        let mut out = File::create(filename)?;
+        self.write(&mut out)
+    }
+}
+
+impl WriteToSvg for Document {
+    fn write<T: Write>(&self, mut out: &mut T) -> std::io::Result<()> {
+        let view_box = format!("{} {} {} {}", self.min_x, self.min_y, self.width, self.height);
+        write!(out, "<svg width=\"{}\" height=\"{}\" viewBox=\"{}\"  xmlns=\"http://www.w3.org/2000/svg\">\n",
+               self.width,
+               self.height,
+               view_box)?;
+        for x in &self.elements {
+            x.write(out)?;
+        }
+        write!(out, "</svg>\n")
     }
 }

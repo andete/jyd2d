@@ -72,3 +72,9 @@ impl Coordinate {
         (other.x - self.x) * (other.x - self.x) + (other.y - self.y) * (other.y - self.y).sqrt()
     }
 }
+
+impl From<(f64, f64)> for Coordinate {
+    fn from(t: (f64, f64)) -> Coordinate {
+        Coordinate::new(t.0, t.1)
+    }
+}
