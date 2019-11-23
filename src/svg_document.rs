@@ -21,6 +21,12 @@ pub enum Element {
     Area(Area)
 }
 
+impl Into<Element> for Area {
+    fn into(self: Area) -> Element {
+        Element::Area(self)
+    }
+}
+
 pub struct Document {
     pub min_x: f64,
     pub min_y: f64,
@@ -45,8 +51,8 @@ impl Document {
         Document { min_x, min_y, width, height, pixel_width, pixel_height, elements: vec![] }
     }
 
-    pub fn add(&mut self, element: Element) {
-        self.elements.push(element)
+    pub fn add<T: Into<Element>>(&mut self, element: T) {
+        self.elements.push(element.into())
     }
 
     pub fn save(&self, filename: &str) -> std::io::Result<()> {

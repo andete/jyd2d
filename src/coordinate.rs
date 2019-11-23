@@ -78,3 +78,18 @@ impl From<(f64, f64)> for Coordinate {
         Coordinate::new(t.0, t.1)
     }
 }
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Coordinates(pub Vec<Coordinate>);
+
+impl From<Vec<(f64, f64)>> for Coordinates {
+    fn from(v: Vec<(f64, f64)>) -> Coordinates {
+        Coordinates(v.into_iter().map(|x| x.into()).collect())
+    }
+}
+
+impl AsRef<Vec<Coordinate>> for Coordinates {
+    fn as_ref(&self) -> &Vec<Coordinate> {
+        &self.0
+    }
+}
