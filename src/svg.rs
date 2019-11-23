@@ -1,29 +1,18 @@
 // (c) 2019 Joost Yervante Damad <joost@damad.be>
 
 use std::fs::File;
-use std::io::Write;
+use std::io;
 
-use crate::Area;
+use crate::element::Element;
 
 pub trait WriteToSvg {
-    fn write<T: Write>(&self, indent: i16, out: &mut T) -> std::io::Result<()>;
+    fn write<T: io::Write>(&self, indent: i16, out: &mut T) -> io::Result<()>;
 
-    fn indent<T: Write>(&self, mut out: &mut T, indent: i16) -> std::io::Result<()> {
+    fn indent<T: io::Write>(&self, mut out: &mut T, indent: i16) -> io::Result<()> {
         for _ in 0..indent {
-            write!(&mut out, " ")?;
+            write!(&mut out, "  ")?;
         }
         Ok(())
-    }
-}
-
-#[derive(Debug)]
-pub enum Element {
-    Area(Area)
-}
-
-impl Into<Element> for Area {
-    fn into(self: Area) -> Element {
-        Element::Area(self)
     }
 }
 
@@ -36,15 +25,6 @@ pub struct Document {
     pub pixel_height: i64,
     elements: Vec<Element>,
 }
-
-impl WriteToSvg for Element {
-    fn write<T: Write>(&self, indent: i16, mut out: &mut T) -> std::io::Result<()> {
-        match self {
-            Element::Area(area) => area.write(indent, &mut out)
-        }
-    }
-}
-
 
 impl Document {
     pub fn new(min_x: f64, min_y: f64, width: f64, height: f64, pixel_width: i64, pixel_height: i64) -> Document {
@@ -62,7 +42,7 @@ impl Document {
 }
 
 impl WriteToSvg for Document {
-    fn write<T: Write>(&self, indent: i16, mut out: &mut T) -> std::io::Result<()> {
+    fn write<T: io::Write>(&self, indent: i16, mut out: &mut T) -> io::Result<()> {
         let view_box = format!("{} {} {} {}", self.min_x, self.min_y, self.width, self.height);
         self.indent(out, indent)?;
         write!(out, "<svg width=\"{}\" height=\"{}\" viewBox=\"{}\"  xmlns=\"http://www.w3.org/2000/svg\">\n",

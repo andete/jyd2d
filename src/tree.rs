@@ -1,8 +1,12 @@
 // (c) 2019 Joost Yervante Damad <joost@damad.be>
 
+use std::io;
+use std::io::Write;
+
 use crate::color::Color;
 use crate::coordinate::Coordinate;
-use crate::label::Label;
+use crate::text::{Description, Label, Title};
+use crate::WriteToSvg;
 
 #[derive(Debug)]
 pub struct Tree {
@@ -13,6 +17,19 @@ pub struct Tree {
     pub location: Coordinate,
     pub label_location: Coordinate,
 }
+
+impl WriteToSvg for Tree {
+    fn write<T: Write>(&self, indent: i16, mut out: &mut T) -> Result<(), io::Error> {
+        self.indent(&mut out, indent)?;
+        write!(&mut out, "<g>\n")?;
+        Label::new(self.label_location, &self.name, 1.0).write(indent + 1, &mut out)?;
+        Title(format!("Tree {}", self.name)).write(indent + 1, &mut out)?;
+        Description(format!("Tree {}", self.name)).write(indent + 1, &mut out)?;
+        self.indent(&mut out, indent)?;
+        write!(&mut out, "</g>\n")
+    }
+}
+
 
 //impl Into<Group> for Tree {
 //    fn into(self) -> Group {

@@ -1,9 +1,12 @@
+// (c) 2019 Joost Yervante Damad <joost@damad.be>
+
 use std::fmt::Write as FmtWrite;
 use std::io::{Error, Write};
+use std::io;
 
 use crate::color::Color;
 use crate::coordinate::{Coordinate, Coordinates};
-use crate::svg_document::WriteToSvg;
+use crate::WriteToSvg;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Area {
@@ -31,7 +34,7 @@ impl Area {
 }
 
 impl WriteToSvg for Area {
-    fn write<T: Write>(&self, indent: i16, mut out: &mut T) -> Result<(), Error> {
+    fn write<T: io::Write>(&self, indent: i16, mut out: &mut T) -> Result<(), io::Error> {
         let mut data = String::new();
         let corners = self.corners.as_ref();
         write!(&mut data, "M{},{} ", corners[0].x, corners[0].y).unwrap();
