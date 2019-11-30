@@ -1,12 +1,11 @@
 // (c) 2019 Joost Yervante Damad <joost@damad.be>
 
 use std::fmt::Write as FmtWrite;
-use std::io;
-use std::io::Write;
+
+use simple_xml_serialize::XMLElement;
 
 use crate::color::Color;
 use crate::coordinate::Coordinates;
-use crate::WriteToSvg;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Area {
@@ -33,8 +32,8 @@ impl Area {
     }
 }
 
-impl WriteToSvg for Area {
-    fn write<T: io::Write>(&self, indent: i16, mut out: &mut T) -> Result<(), io::Error> {
+impl Into<XMLElement> for Area {
+    fn into(self) -> XMLElement {
         let mut data = String::new();
         let corners = self.corners.as_ref();
         write!(&mut data, "M{},{} ", corners[0].x, corners[0].y).unwrap();
@@ -42,9 +41,11 @@ impl WriteToSvg for Area {
             write!(&mut data, "L{},{} ", c.x, c.y).unwrap();
         });
         write!(&mut data, "z").unwrap();
-        self.indent(out, indent)?;
-        write!(&mut out, "<path d=\"{}\" fill=\"{}\" stroke=\"{}\" stroke-width=\"0.25\" />\n",
-               data, self.fill.to_string(), self.color.to_string())
+        XMLElement::new("path")
+            .attr("d", data)
+            .attr("fill", self.fill)
+            .attr("stroke", self.color)
+            .attr("stroke-width", 0.25)
     }
 }
 
@@ -63,10 +64,14 @@ impl Circle {
     }
 }
 
-impl WriteToSvg for Circle {
-    fn write<T: io::Write>(&self, indent: i16, mut out: &mut T) -> Result<(), io::Error> {
-        self.indent(out, indent)?;
-        write!(&mut out, "<circle r=\"{}\" cx=\"{}\" cy=\"{}\" fill=\"{}\" stroke=\"{}\" stroke-width=\"0.25\" />\n",
-               self.r, self.cx, self.cy, self.fill.to_string(), self.color.to_string())
+impl Into<XMLElement> for Circle {
+    fn into(self) -> XMLElement {
+        XMLElement::new("circle")
+            .attr("r", self.r)
+            .attr("cx", self.cx)
+            .attr("cy", self.cy)
+            .attr("fill", self.fill)
+            .attr("stroke", self.color)
+            .attr("stroke-width", 0.25)
     }
 }

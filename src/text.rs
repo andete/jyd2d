@@ -1,10 +1,10 @@
 // (c) 2019 Joost Yervante Damad <joost@damad.be>
 
-use std::io;
-use std::io::Write;
+
+
+use simple_xml_serialize::XMLElement;
 
 use crate::coordinate::Coordinate;
-use crate::WriteToSvg;
 
 #[derive(Debug)]
 pub struct Label {
@@ -23,33 +23,33 @@ impl Label {
     }
 }
 
-impl WriteToSvg for Label {
-    fn write<T: io::Write>(&self, indent: i16, mut out: &mut T) -> Result<(), io::Error> {
-        self.indent(&mut out, indent)?;
-        write!(&mut out, "<text text-anchor=\"middle\" x=\"{}\" y=\"{}\" font-size=\"{}\">{}</text>\n",
-               self.text, self.location.x, self.location.y, self.size)?;
-        Ok(())
+impl Into<XMLElement> for Label {
+    fn into(self) -> XMLElement {
+        XMLElement::new("text")
+            .attr("text-anchor", "middle")
+            .attr("x", self.location.x)
+            .attr("y", self.location.y)
+            .attr("font-size", self.size)
+            .text(self.text)
     }
 }
 
 #[derive(Debug)]
 pub struct Title(pub String);
 
-impl WriteToSvg for Title {
-    fn write<T: io::Write>(&self, indent: i16, mut out: &mut T) -> Result<(), io::Error> {
-        self.indent(&mut out, indent)?;
-        write!(&mut out, "<title>{}</title>", self.0)?;
-        Ok(())
+impl Into<XMLElement> for Title {
+    fn into(self) -> XMLElement {
+        XMLElement::new("title")
+            .text(self.0)
     }
 }
 
 #[derive(Debug)]
 pub struct Description(pub String);
 
-impl WriteToSvg for Description {
-    fn write<T: io::Write>(&self, indent: i16, mut out: &mut T) -> Result<(), io::Error> {
-        self.indent(&mut out, indent)?;
-        write!(&mut out, "<desc>{}</desc>", self.0)?;
-        Ok(())
+impl Into<XMLElement> for Description {
+    fn into(self) -> XMLElement {
+        XMLElement::new("desc")
+            .text(self.0)
     }
 }

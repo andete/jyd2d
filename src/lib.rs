@@ -4,7 +4,6 @@ pub use color::Color;
 pub use coordinate::Coordinate;
 pub use graphic::{Area, Circle};
 pub use svg::Document;
-use svg::WriteToSvg;
 pub use text::Label;
 
 pub mod graphic;
@@ -13,7 +12,6 @@ pub mod coordinate;
 pub mod text;
 pub mod matrix2;
 pub mod matrix3;
-pub mod element;
 pub mod tree;
 pub mod vector2;
 pub mod vector3;
