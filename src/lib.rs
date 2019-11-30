@@ -16,3 +16,4 @@ pub mod tree;
 pub mod vector2;
 pub mod vector3;
 pub mod svg;
+pub mod util;

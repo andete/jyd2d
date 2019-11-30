@@ -10,16 +10,20 @@ use crate::coordinate::Coordinate;
 pub struct Label {
     pub location: Coordinate,
     pub text: String,
-    pub size: f64,
+    pub size: Option<f64>,
 }
 
 impl Label {
-    pub fn new(location: Coordinate, text: &str, size: f64) -> Label {
+    pub fn new(location: Coordinate, text: &str) -> Label {
         Label {
             location,
             text: text.to_string(),
-            size,
+            size: None,
         }
+    }
+    pub fn size(mut self, size: f64) -> Self {
+        self.size = Some(size);
+        self
     }
 }
 
@@ -29,7 +33,7 @@ impl Into<XMLElement> for Label {
             .attr("text-anchor", "middle")
             .attr("x", self.location.x)
             .attr("y", self.location.y)
-            .attr("font-size", self.size)
+            .attr_opt("font-size", self.size)
             .text(self.text)
     }
 }

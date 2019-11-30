@@ -19,18 +19,17 @@ pub struct Tree {
 
 impl Into<XMLElement> for Tree {
     fn into(self) -> XMLElement {
-        let mut e = XMLElement::new("g")
+        XMLElement::new("g")
             .attr("stroke-width", 0.2)
             .attr("id", format!("tree-{}", self.name))
-            .element(Label::new(self.label_location, &self.name, 1.0))
+            .element(Label::new(self.label_location, &self.name))
             .element(Title(format!("Tree {}", self.name)))
-            .element(Description(format!("Tree {}", self.name)));
-        self.crown_diameter.map(|d| {
-            e.add_element(Circle::new(self.location.x, self.location.y, d / 2.0,
-                                      Color::Green, Color::DarkGreen))
-        });
-        e.add_element(Circle::new(self.location.x, self.location.y, self.trunk_diameter / 2.0,
-                                  Color::Brown, Color::Maroon));
-        e
+            .element(Description(format!("Tree {}", self.name)))
+            .element_opt(self.crown_diameter.map(|d| {
+                Circle::new(self.location.x, self.location.y, d / 2.0,
+                            Color::Green, Color::DarkGreen)
+            }))
+            .element(Circle::new(self.location.x, self.location.y, self.trunk_diameter / 2.0,
+                                 Color::Brown, Color::Maroon))
     }
 }
