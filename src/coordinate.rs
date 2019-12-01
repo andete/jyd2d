@@ -28,8 +28,16 @@ impl Coordinate {
         Coordinate { fx: !self.fx, ..self }
     }
 
+    pub fn flip_x_if(self, v: bool) -> Coordinate {
+        Coordinate { fx: v, ..self }
+    }
+
     pub fn flip_y(self) -> Coordinate {
         Coordinate { fy: !self.fy, ..self }
+    }
+
+    pub fn flip_y_if(self, v: bool) -> Coordinate {
+        Coordinate { fy: v, ..self }
     }
 
     pub fn rotate(self, r: f64) -> Coordinate {
@@ -52,20 +60,34 @@ impl Coordinate {
         }
     }
 
-    pub fn reference_to_world(self, world: &Coordinate) -> Coordinate {
-        let matrix = Matrix3::builder()
-            .scale(world.sx, world.sy)
+    pub fn matrix(&self) -> Matrix3 {
+        Matrix3::builder()
+            .scale(self.sx, self.sy)
             .flip_x(self.fx)
-            .flip_x(world.fx)
+            //.flip_x(world.fx)
             .flip_y(self.fy)
-            .flip_y(world.fy)
+            //.flip_y(world.fy)
             .rotate(self.r)
-            .rotate(world.r)
-            .translate(world.into())
-            .build();
+            //.rotate(world.r)
+            //.translate(world.into())
+            .build()
+    }
+
+    pub fn reference_to_world(self, world: &Coordinate) -> Coordinate {
+        let matrix = self.matrix();
         let v1 = Vector3::new(self.x, self.y, 1.0);
         let res = v1 * matrix;
         Coordinate::new(res.x, res.y)
+            .translate(-world.x, -world.y) // ??
+            .rotate(-world.r) // ??
+            .flip_x_if(world.fx)
+            .flip_y_if(world.fy)
+            .scale_x(world.sx)
+            .scale_y(world.sy)
+    }
+
+    pub fn fix(self) -> Coordinate {
+        self.reference_to_world(&Coordinate::new(0.0, 0.0))
     }
 
     pub fn distance(self, other: Coordinate) -> f64 {
@@ -96,8 +118,6 @@ impl AsRef<Vec<Coordinate>> for Coordinates {
 
 #[cfg(test)]
 mod test {
-    use crate::matrix2::*;
-    use assert_approx_eq::assert_approx_eq;
     use crate::Coordinate;
 
     #[test]

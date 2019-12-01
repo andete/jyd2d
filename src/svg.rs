@@ -4,7 +4,9 @@ use std::fs::File;
 use std::io::Write;
 
 use simple_xml_serialize::XMLElement;
+
 use crate::Coordinate;
+use crate::graphic::{Axis, World};
 
 pub struct Document {
     pub min_x: f64,
@@ -37,15 +39,19 @@ impl Document {
 impl Into<XMLElement> for &Document {
     fn into(self) -> XMLElement {
         let view_box = format!("{} {} {} {}", self.min_x, self.min_y, self.width, self.height);
-        let children: Vec<XMLElement> = self.children.iter().map(|x| x.into()).collect();
         let pixels_per_unit = self.pixels_per_unit as f64;
         let pixel_width = (self.width * pixels_per_unit).ceil() as i64;
         let pixel_height = (self.height * pixels_per_unit).ceil() as i64;
+        let mut world = World::new(self.origin);
+        for child in &self.children {
+            world.add(child)
+        }
+        world.add(Axis::new(Coordinate::new(0.0, 0.0), 50.0));
         XMLElement::new("svg")
             .attr("width", pixel_width)
             .attr("height", pixel_height)
             .attr("viewBox", view_box)
             .attr("xmlns", "http://www.w3.org/2000/svg")
-            .elements(children)
+            .element(world)
     }
 }
