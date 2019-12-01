@@ -46,7 +46,6 @@ impl Into<XMLElement> for &Document {
         for child in &self.children {
             world.add(child)
         }
-        world.add(Axis::new(Coordinate::new(0.0, 0.0), 50.0));
         XMLElement::new("svg")
             .attr("width", pixel_width)
             .attr("height", pixel_height)

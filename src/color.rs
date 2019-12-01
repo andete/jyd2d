@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter, Error};
 
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Copy)]
 pub enum Color {
     None,
     Black,
@@ -13,6 +13,7 @@ pub enum Color {
     DarkGreen,
     Blue,
     Orange,
+    Grey,
 }
 
 impl Display for Color {

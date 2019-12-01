@@ -13,11 +13,12 @@ pub struct Area {
     pub corners: Coordinates,
     pub color: Color,
     pub fill: Color,
+    pub world: Option<World>,
 }
 
 impl Area {
     pub fn new(corners: Coordinates) -> Area {
-        Area { corners, color: Color::Black, fill: Color::None }
+        Area { corners, color: Color::Black, fill: Color::None, world: None }
     }
 
     pub fn color(self, color: Color) -> Self {
@@ -26,6 +27,9 @@ impl Area {
 
     pub fn fill(self, fill: Color) -> Self {
         Area { fill, ..self }
+    }
+    pub fn world(self, origin: Coordinate) -> Self {
+        Area { world: Some(World::new(origin)), ..self }
     }
 }
 
@@ -38,11 +42,15 @@ impl Into<XMLElement> for Area {
             write!(&mut data, "L{},{} ", c.x, c.y).unwrap();
         });
         write!(&mut data, "z").unwrap();
-        XMLElement::new("path")
-            .attr("d", data)
-            .attr("fill", self.fill)
-            .attr("stroke", self.color)
-            .attr("stroke-width", 0.25)
+        XMLElement::new("g")
+            .element(
+                XMLElement::new("path")
+                    .attr("d", data)
+                    .attr("fill", self.fill)
+                    .attr("stroke", self.color)
+                    .attr("stroke-width", 0.25)
+            )
+            .element_opt(self.world)
     }
 }
 
@@ -105,8 +113,8 @@ pub struct Axis {
 }
 
 impl Axis {
-    pub fn new(location: Coordinate, scale: f64) -> Axis {
-        Axis { location, scale }
+    pub fn new(scale: f64) -> Axis {
+        Axis { location: Coordinate::new(0.0, 0.0), scale }
     }
 }
 
@@ -119,13 +127,15 @@ impl Into<XMLElement> for Axis {
         let x_a2 = x_dir.translate(-arrow_scale, -arrow_scale);
         let y_a1 = y_dir.translate(-arrow_scale, -arrow_scale);
         let y_a2 = y_dir.translate(arrow_scale, -arrow_scale);
+        let color = Color::Grey;
         XMLElement::new("g")
-            .element(Line::new(self.location, x_dir, Color::Black))
-            .element(Line::new(self.location, y_dir, Color::Black))
-            .element(Line::new(x_dir, x_a1, Color::Black))
-            .element(Line::new(x_dir, x_a2, Color::Black))
-            .element(Line::new(y_dir, y_a1, Color::Black))
-            .element(Line::new(y_dir, y_a2, Color::Black))
+            .element(Line::new(self.location, x_dir, color))
+            .element(Line::new(self.location, y_dir, color))
+            .element(Line::new(x_dir, x_a1, color))
+            .element(Line::new(x_dir, x_a2, color))
+            .element(Line::new(y_dir, y_a1, color))
+            .element(Line::new(y_dir, y_a2, color))
+            .element(Line::new(x_a1, x_a2, color))
     }
 }
 
@@ -150,8 +160,9 @@ impl Into<XMLElement> for World {
         XMLElement::new("g")
             .attr("transform", format!("translate({} {}) matrix({} {} {} {} {} {})",
                                        self.location.x, self.location.y,
-                                       matrix.m11, matrix.m21, matrix.m21, matrix.m22, matrix.m31, matrix.m32
-                                       ))
+                                       matrix.m11, matrix.m12, matrix.m21, matrix.m22, matrix.m31, matrix.m32
+            ))
+            .element(Axis::new(10.0))
             .elements(self.elements)
     }
 }
