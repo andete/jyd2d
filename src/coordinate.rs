@@ -2,6 +2,7 @@
 
 use crate::matrix3::Matrix3;
 use crate::vector3::Vector3;
+use std::cmp::min;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Coordinate {
@@ -103,6 +104,27 @@ impl From<(f64, f64)> for Coordinate {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Coordinates(pub Vec<Coordinate>);
+
+impl Coordinates {
+    pub fn axis_scale(&self) -> f64 {
+        let mut sort_x = self.0.clone();
+        sort_x.sort_by(|a, b| a.x.partial_cmp(&b.x).unwrap());
+        let min_x = sort_x.first().unwrap().x;
+        let max_x = sort_x.last().unwrap().x;
+        let mut sort_y = self.0.clone();
+        sort_y.sort_by(|a, b| a.y.partial_cmp(&b.y).unwrap());
+        let min_y = sort_y.first().unwrap().y;
+        let max_y = sort_y.last().unwrap().y;
+        let dx = max_x - min_x;
+        let dy = max_y - min_y;
+        let d = if dx < dy {
+            dx
+        } else {
+            dy
+        };
+        d / 10.0
+    }
+}
 
 impl From<Vec<(f64, f64)>> for Coordinates {
     fn from(v: Vec<(f64, f64)>) -> Coordinates {

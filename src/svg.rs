@@ -6,7 +6,7 @@ use std::io::Write;
 use simple_xml_serialize::XMLElement;
 
 use crate::Coordinate;
-use crate::graphic::{Axis, World};
+use crate::graphic::World;
 
 pub struct Document {
     pub min_x: f64,

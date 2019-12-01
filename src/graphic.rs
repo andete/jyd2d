@@ -17,8 +17,8 @@ pub struct Area {
 }
 
 impl Area {
-    pub fn new(corners: Coordinates) -> Area {
-        Area { corners, color: Color::Black, fill: Color::None, world: None }
+    pub fn new<T: Into<Coordinates>>(corners: T) -> Area {
+        Area { corners: corners.into(), color: Color::Black, fill: Color::None, world: None }
     }
 
     pub fn color(self, color: Color) -> Self {
@@ -29,7 +29,12 @@ impl Area {
         Area { fill, ..self }
     }
     pub fn world(self, origin: Coordinate) -> Self {
-        Area { world: Some(World::new(origin)), ..self }
+        let scale = self.corners.axis_scale();
+        Area { world: Some(World::new(origin).axis_scale(scale)), ..self }
+    }
+
+    pub fn add<X: Into<XMLElement>>(&mut self, x: X) {
+        self.world.as_mut().map(|w| w.add(x));
     }
 }
 
@@ -143,14 +148,18 @@ impl Into<XMLElement> for Axis {
 pub struct World {
     pub location: Coordinate,
     pub elements: Vec<XMLElement>,
+    pub axis_scale: f64,
 }
 
 impl World {
     pub fn new(location: Coordinate) -> World {
-        World { location, elements: vec![] }
+        World { location, elements: vec![], axis_scale: 10.0 }
     }
     pub fn add<X: Into<XMLElement>>(&mut self, x: X) {
         self.elements.push(x.into())
+    }
+    pub fn axis_scale(self, axis_scale: f64) -> Self {
+        World { axis_scale, ..self }
     }
 }
 
@@ -162,7 +171,7 @@ impl Into<XMLElement> for World {
                                        self.location.x, self.location.y,
                                        matrix.m11, matrix.m12, matrix.m21, matrix.m22, matrix.m31, matrix.m32
             ))
-            .element(Axis::new(10.0))
+            .element(Axis::new(self.axis_scale))
             .elements(self.elements)
     }
 }
