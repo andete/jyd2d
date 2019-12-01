@@ -210,7 +210,7 @@ impl Matrix3Build {
     }
 
     pub fn flip_y(mut self, flip_y: bool) -> Matrix3Build {
-        self.result *= Matrix3::flip_x(flip_y);
+        self.result *= Matrix3::flip_y(flip_y);
         self
     }
 

@@ -9,7 +9,8 @@ description = "simple data structures for drawing 2d plans"
 
 [dependencies]
 assert_approx_eq = "1.1"
-simple_xml_serialize = "0.2"
-
-[patch.crates-io]
+#simple_xml_serialize = "0.2"
 simple_xml_serialize = { path = "../simple_xml_serialize" }
+
+#[patch.crates-io]
+#simple_xml_serialize = { path = "../simple_xml_serialize" }

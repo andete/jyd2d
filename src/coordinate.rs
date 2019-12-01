@@ -52,16 +52,16 @@ impl Coordinate {
         }
     }
 
-    pub fn reference_to_world(self, reference: &Coordinate) -> Coordinate {
+    pub fn reference_to_world(self, world: &Coordinate) -> Coordinate {
         let matrix = Matrix3::builder()
-            .scale(reference.sx, reference.sy)
+            .scale(world.sx, world.sy)
             .flip_x(self.fx)
-            .flip_x(reference.fx)
+            .flip_x(world.fx)
             .flip_y(self.fy)
-            .flip_y(reference.fy)
+            .flip_y(world.fy)
             .rotate(self.r)
-            .rotate(reference.r)
-            .translate(reference.into())
+            .rotate(world.r)
+            .translate(world.into())
             .build();
         let v1 = Vector3::new(self.x, self.y, 1.0);
         let res = v1 * matrix;
@@ -91,5 +91,28 @@ impl From<Vec<(f64, f64)>> for Coordinates {
 impl AsRef<Vec<Coordinate>> for Coordinates {
     fn as_ref(&self) -> &Vec<Coordinate> {
         &self.0
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::matrix2::*;
+    use assert_approx_eq::assert_approx_eq;
+    use crate::Coordinate;
+
+    #[test]
+    fn flip_x() {
+        let c = Coordinate::new(10.0, 6.0);
+        let d = Coordinate::new(0.0, 0.0).flip_x();
+        let e = c.reference_to_world(&d);
+        assert_eq!(Coordinate::new(-10.0, 6.0), e);
+    }
+
+    #[test]
+    fn flip_y() {
+        let c = Coordinate::new(10.0, 6.0);
+        let d = Coordinate::new(0.0, 0.0).flip_y();
+        let e = c.reference_to_world(&d);
+        assert_eq!(Coordinate::new(10.0, -6.0), e);
     }
 }
