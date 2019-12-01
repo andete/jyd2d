@@ -2,7 +2,6 @@
 
 use crate::matrix3::Matrix3;
 use crate::vector3::Vector3;
-use std::cmp::min;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Coordinate {
