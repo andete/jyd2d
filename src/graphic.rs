@@ -1,13 +1,13 @@
 // (c) 2019 Joost Yervante Damad <joost@damad.be>
 
 use std::fmt::Write as FmtWrite;
-use std::ops::AddAssign;
 
 use simple_xml_serialize::XMLElement;
 
 use crate::color::Color;
 use crate::Coordinate;
 use crate::coordinate::Coordinates;
+use crate::text::Title;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Area {
@@ -15,7 +15,7 @@ pub struct Area {
     pub color: Color,
     pub fill: Color,
     pub world: Option<World>,
-    pub stroke_width: Option<f64>
+    pub stroke_width: Option<f64>,
 }
 
 impl Area {
@@ -30,9 +30,10 @@ impl Area {
     pub fn fill(self, fill: Color) -> Self {
         Area { fill, ..self }
     }
-    pub fn world(self, origin: Coordinate) -> Self {
+    pub fn world<T: ToString>(self, title: T, origin: Coordinate, stroke_width: Option<f64>) -> Self {
         let scale = self.corners.axis_scale();
-        Area { world: Some(World::new(origin).axis_scale(scale)), ..self }
+        let world = World::new(title, origin).axis_scale(scale).stroke_width_opt(stroke_width);
+        Area { world: Some(world), ..self }
     }
 
     pub fn stroke_width(self, stroke_width: f64) -> Self {
@@ -113,7 +114,6 @@ impl Into<XMLElement> for Line {
             .attr("x2", self.p2.x)
             .attr("y2", self.p2.y)
             .attr("stroke", self.color)
-            .attr("stroke-width", 0.25)
     }
 }
 
@@ -155,17 +155,22 @@ pub struct World {
     pub location: Coordinate,
     pub elements: Vec<XMLElement>,
     pub axis_scale: f64,
+    pub title: String,
+    pub stroke_width: Option<f64>,
 }
 
 impl World {
-    pub fn new(location: Coordinate) -> World {
-        World { location, elements: vec![], axis_scale: 10.0 }
+    pub fn new<T: ToString>(title: T, location: Coordinate) -> World {
+        World { location, elements: vec![], axis_scale: 10.0, title: title.to_string(), stroke_width: None }
     }
     pub fn add<X: Into<XMLElement>>(&mut self, x: X) {
         self.elements.push(x.into())
     }
     pub fn axis_scale(self, axis_scale: f64) -> Self {
         World { axis_scale, ..self }
+    }
+    pub fn stroke_width_opt(self, stroke_width: Option<f64>) -> Self {
+        World { stroke_width, ..self }
     }
 }
 
@@ -177,7 +182,9 @@ impl Into<XMLElement> for World {
                                        self.location.x, self.location.y,
                                        matrix.m11, matrix.m12, matrix.m21, matrix.m22, matrix.m31, matrix.m32
             ))
+            .attr_opt("stroke-width", self.stroke_width)
             .element(Axis::new(self.axis_scale))
+            .element(Title(self.title))
             .elements(self.elements)
     }
 }

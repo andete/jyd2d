@@ -42,7 +42,7 @@ impl Into<XMLElement> for &Document {
         let pixels_per_unit = self.pixels_per_unit as f64;
         let pixel_width = (self.width * pixels_per_unit).ceil() as i64;
         let pixel_height = (self.height * pixels_per_unit).ceil() as i64;
-        let mut world = World::new(self.origin);
+        let mut world = World::new("Document", self.origin);
         for child in &self.children {
             world.add(child)
         }
