@@ -178,6 +178,7 @@ impl Into<XMLElement> for World {
     fn into(self) -> XMLElement {
         let matrix = self.location.matrix();
         XMLElement::new("g")
+            .attr("id", format!("world-{}", self.title))
             .attr("transform", format!("translate({} {}) matrix({} {} {} {} {} {})",
                                        self.location.x, self.location.y,
                                        matrix.m11, matrix.m12, matrix.m21, matrix.m22, matrix.m31, matrix.m32
