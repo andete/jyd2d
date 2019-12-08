@@ -1,6 +1,7 @@
 // (c) 2019 Joost Yervante Damad <joost@damad.be>
 
 use std::fmt::Write as FmtWrite;
+use std::ops::AddAssign;
 
 use simple_xml_serialize::XMLElement;
 
@@ -14,11 +15,12 @@ pub struct Area {
     pub color: Color,
     pub fill: Color,
     pub world: Option<World>,
+    pub stroke_width: Option<f64>
 }
 
 impl Area {
     pub fn new<T: Into<Coordinates>>(corners: T) -> Area {
-        Area { corners: corners.into(), color: Color::Black, fill: Color::None, world: None }
+        Area { corners: corners.into(), color: Color::Black, fill: Color::None, world: None, stroke_width: None }
     }
 
     pub fn color(self, color: Color) -> Self {
@@ -31,6 +33,10 @@ impl Area {
     pub fn world(self, origin: Coordinate) -> Self {
         let scale = self.corners.axis_scale();
         Area { world: Some(World::new(origin).axis_scale(scale)), ..self }
+    }
+
+    pub fn stroke_width(self, stroke_width: f64) -> Self {
+        Area { stroke_width: Some(stroke_width), ..self }
     }
 
     pub fn add<X: Into<XMLElement>>(&mut self, x: X) {
@@ -53,7 +59,7 @@ impl Into<XMLElement> for Area {
                     .attr("d", data)
                     .attr("fill", self.fill)
                     .attr("stroke", self.color)
-                    .attr("stroke-width", 0.25)
+                    .attr_opt("stroke-width", self.stroke_width)
             )
             .element_opt(self.world)
     }

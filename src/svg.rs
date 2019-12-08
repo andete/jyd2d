@@ -51,6 +51,7 @@ impl Into<XMLElement> for &Document {
             .attr("height", pixel_height)
             .attr("viewBox", view_box)
             .attr("xmlns", "http://www.w3.org/2000/svg")
+            .attr("stroke-width", 0.25)
             .element(world)
     }
 }
