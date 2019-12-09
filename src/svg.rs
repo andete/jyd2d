@@ -27,7 +27,8 @@ impl Document {
     pub fn save(&self, filename: &str) -> std::io::Result<()> {
         let mut out = File::create(filename)?;
         let xml: XMLElement = self.into();
-        out.write(xml.to_string_pretty("\n", "  ").as_bytes())?;
+        //out.write(xml.to_string_pretty("\n", "  ").as_bytes())?;
+        out.write(xml.to_string().as_bytes())?;
         Ok(())
     }
 

@@ -16,11 +16,19 @@ pub struct Area {
     pub fill: Color,
     pub world: Option<World>,
     pub stroke_width: Option<f64>,
+    pub name: String,
 }
 
 impl Area {
-    pub fn new<T: Into<Coordinates>>(corners: T) -> Area {
-        Area { corners: corners.into(), color: Color::Black, fill: Color::None, world: None, stroke_width: None }
+    pub fn new<T: Into<Coordinates>, U: ToString>(name: U, corners: T) -> Area {
+        Area {
+            corners: corners.into(),
+            color: Color::Black,
+            fill: Color::None,
+            world: None,
+            stroke_width: None,
+            name: name.to_string(),
+        }
     }
 
     pub fn color(self, color: Color) -> Self {
@@ -30,9 +38,10 @@ impl Area {
     pub fn fill(self, fill: Color) -> Self {
         Area { fill, ..self }
     }
-    pub fn world<T: ToString>(self, title: T, origin: Coordinate, stroke_width: Option<f64>) -> Self {
+
+    pub fn world(self, origin: Coordinate, stroke_width: Option<f64>) -> Self {
         let scale = self.corners.axis_scale();
-        let world = World::new(title, origin).axis_scale(scale).stroke_width_opt(stroke_width);
+        let world = World::new(format!("world-{}", self.name), origin).axis_scale(scale).stroke_width_opt(stroke_width);
         Area { world: Some(world), ..self }
     }
 
@@ -57,10 +66,12 @@ impl Into<XMLElement> for Area {
         XMLElement::new("g")
             .element(
                 XMLElement::new("path")
+                    .attr("id", format!("area-{}", self.name))
                     .attr("d", data)
                     .attr("fill", self.fill)
                     .attr("stroke", self.color)
                     .attr_opt("stroke-width", self.stroke_width)
+                    .element(Title(self.name))
             )
             .element_opt(self.world)
     }
@@ -155,13 +166,13 @@ pub struct World {
     pub location: Coordinate,
     pub elements: Vec<XMLElement>,
     pub axis_scale: f64,
-    pub title: String,
+    pub name: String,
     pub stroke_width: Option<f64>,
 }
 
 impl World {
-    pub fn new<T: ToString>(title: T, location: Coordinate) -> World {
-        World { location, elements: vec![], axis_scale: 10.0, title: title.to_string(), stroke_width: None }
+    pub fn new<T: ToString>(name: T, location: Coordinate) -> World {
+        World { location, elements: vec![], axis_scale: 10.0, name: name.to_string(), stroke_width: None }
     }
     pub fn add<X: Into<XMLElement>>(&mut self, x: X) {
         self.elements.push(x.into())
@@ -178,14 +189,14 @@ impl Into<XMLElement> for World {
     fn into(self) -> XMLElement {
         let matrix = self.location.matrix();
         XMLElement::new("g")
-            .attr("id", format!("world-{}", self.title))
+            .attr("id", format!("world-{}", self.name))
             .attr("transform", format!("translate({} {}) matrix({} {} {} {} {} {})",
                                        self.location.x, self.location.y,
                                        matrix.m11, matrix.m12, matrix.m21, matrix.m22, matrix.m31, matrix.m32
             ))
             .attr_opt("stroke-width", self.stroke_width)
             .element(Axis::new(self.axis_scale))
-            .element(Title(self.title))
+            .element(Title(self.name))
             .elements(self.elements)
     }
 }
