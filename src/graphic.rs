@@ -1,5 +1,6 @@
 // (c) 2019 Joost Yervante Damad <joost@damad.be>
 
+use std::vec::IntoIter;
 use std::fmt::Write as FmtWrite;
 
 use simple_xml_serialize::XMLElement;
@@ -51,6 +52,10 @@ impl Area {
 
     pub fn add<X: Into<XMLElement>>(&mut self, x: X) {
         self.world.as_mut().map(|w| w.add(x));
+    }
+
+    pub fn add_all<X: Into<XMLElement>>(&mut self, xn: IntoIter<X>) {
+        self.world.as_mut().map(|w| w.add_all(xn));
     }
 }
 
@@ -176,6 +181,9 @@ impl World {
     }
     pub fn add<X: Into<XMLElement>>(&mut self, x: X) {
         self.elements.push(x.into())
+    }
+    pub fn add_all<X: Into<XMLElement>>(&mut self, xn: IntoIter<X>) {
+        xn.into_iter().for_each(|x| self.elements.push(x.into()))
     }
     pub fn axis_scale(self, axis_scale: f64) -> Self {
         World { axis_scale, ..self }
