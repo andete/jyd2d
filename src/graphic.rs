@@ -1,7 +1,7 @@
 // (c) 2019 Joost Yervante Damad <joost@damad.be>
 
-use std::vec::IntoIter;
 use std::fmt::Write as FmtWrite;
+use std::vec::IntoIter;
 
 use simple_xml_serialize::XMLElement;
 
@@ -11,8 +11,60 @@ use crate::coordinate::Coordinates;
 use crate::text::Title;
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct Path {
+    pub points: Vec<Coordinate>,
+    pub color: Color,
+    pub stroke_width: Option<f64>,
+    pub stroke_dash: Option<String>,
+    pub name: String,
+}
+
+impl Path {
+    pub fn new<T: Into<Coordinate>, U: ToString>(name: U, points: Vec<T>) -> Self {
+        Self {
+            points: points.into_iter().map(|p| p.into()).collect(),
+            color: Color::Black,
+            stroke_width: None,
+            stroke_dash: None,
+            name: name.to_string(),
+        }
+    }
+
+    pub fn color(self, color: Color) -> Self {
+        Self { color, ..self }
+    }
+
+    pub fn stroke_width(self, stroke_width: f64) -> Self {
+        Self { stroke_width: Some(stroke_width), ..self }
+    }
+
+    pub fn stroke_dash<T:ToString>(self, stroke_dash: T) -> Self {
+        Self { stroke_dash: Some(stroke_dash.to_string()), ..self }
+    }
+}
+
+impl Into<XMLElement> for Path {
+    fn into(self) -> XMLElement {
+        let mut data = String::new();
+        write!(&mut data, "M{},{} ", self.points[0].x, self.points[0].y).unwrap();
+        self.points.iter().skip(1).for_each(|c| {
+            write!(&mut data, "L{},{} ", c.x, c.y).unwrap();
+        });
+
+        XMLElement::new("path")
+            .attr("id", format!("area-{}", self.name))
+            .attr("d", data)
+            .attr("stroke", self.color)
+            .attr("fill", "none")
+            .attr_opt("stroke-width", self.stroke_width)
+            .attr_opt("stroke-dasharray", self.stroke_dash)
+            .element(Title(self.name))
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct Area {
-    pub corners: Coordinates,
+    pub corners: Vec<Coordinate>,
     pub color: Color,
     pub fill: Color,
     pub world: Option<World>,
@@ -21,9 +73,9 @@ pub struct Area {
 }
 
 impl Area {
-    pub fn new<T: Into<Coordinates>, U: ToString>(name: U, corners: T) -> Area {
+    pub fn new<T: Into<Coordinate>, U: ToString>(name: U, corners: Vec<T>) -> Area {
         Area {
-            corners: corners.into(),
+            corners: corners.into_iter().map(|c| c.into()).collect(),
             color: Color::Black,
             fill: Color::None,
             world: None,
@@ -41,7 +93,7 @@ impl Area {
     }
 
     pub fn world(self, origin: Coordinate, stroke_width: Option<f64>) -> Self {
-        let scale = self.corners.axis_scale();
+        let scale = Coordinates::axis_scale(&self.corners);
         let world = World::new(format!("world-{}", self.name), origin).axis_scale(scale).stroke_width_opt(stroke_width);
         Area { world: Some(world), ..self }
     }
@@ -62,7 +114,7 @@ impl Area {
 impl Into<XMLElement> for Area {
     fn into(self) -> XMLElement {
         let mut data = String::new();
-        let corners = self.corners.as_ref();
+        let corners = self.corners;
         write!(&mut data, "M{},{} ", corners[0].x, corners[0].y).unwrap();
         corners.iter().skip(1).for_each(|c| {
             write!(&mut data, "L{},{} ", c.x, c.y).unwrap();
@@ -72,6 +124,7 @@ impl Into<XMLElement> for Area {
             .element(
                 XMLElement::new("path")
                     .attr("id", format!("area-{}", self.name))
+                    //.attr("opacity", 0.5)
                     .attr("d", data)
                     .attr("fill", self.fill)
                     .attr("stroke", self.color)
@@ -114,11 +167,16 @@ pub struct Line {
     pub p1: Coordinate,
     pub p2: Coordinate,
     pub color: Color,
+    pub stroke_width: Option<f64>,
 }
 
 impl Line {
-    fn new(p1: Coordinate, p2: Coordinate, color: Color) -> Line {
-        Line { p1, p2, color }
+    pub fn new<T: Into<Coordinate>>(p1: T, p2: T, color: Color) -> Line {
+        Line { p1: p1.into(), p2: p2.into(), color, stroke_width: None }
+    }
+
+    pub fn stroke_width(self, stroke_width: f64) -> Line {
+        Line { stroke_width: Some(stroke_width), ..self }
     }
 }
 
@@ -141,7 +199,7 @@ pub struct Axis {
 
 impl Axis {
     pub fn new(scale: f64) -> Axis {
-        Axis { location: Coordinate::new(0.0, 0.0), scale }
+        Axis { location: (0.0, 0.0).into(), scale }
     }
 }
 

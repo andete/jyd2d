@@ -20,8 +20,12 @@ pub struct Coordinate {
 }
 
 impl Coordinate {
-    pub fn new(x: f64, y: f64) -> Coordinate {
+    pub const fn new(x: f64, y: f64) -> Coordinate {
         Coordinate { x, y, r: 0.0, fx: false, fy: false, sx: 1.0, sy: 1.0 }
+    }
+
+    pub const fn tup(&self) -> (f64, f64) {
+        (self.x, self.y)
     }
 
     pub fn flip_x(self) -> Coordinate {
@@ -87,7 +91,7 @@ impl Coordinate {
     }
 
     pub fn fix(self) -> Coordinate {
-        self.reference_to_world(&Coordinate::new(0.0, 0.0))
+        self.reference_to_world(&(0.0, 0.0).into())
     }
 
     pub fn distance(self, other: Coordinate) -> f64 {
@@ -101,16 +105,15 @@ impl From<(f64, f64)> for Coordinate {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct Coordinates(pub Vec<Coordinate>);
+pub struct Coordinates;
 
 impl Coordinates {
-    pub fn axis_scale(&self) -> f64 {
-        let mut sort_x = self.0.clone();
+    pub fn axis_scale(coordinates: &Vec<Coordinate>) -> f64 {
+        let mut sort_x = coordinates.clone();
         sort_x.sort_by(|a, b| a.x.partial_cmp(&b.x).unwrap());
         let min_x = sort_x.first().unwrap().x;
         let max_x = sort_x.last().unwrap().x;
-        let mut sort_y = self.0.clone();
+        let mut sort_y = coordinates.clone();
         sort_y.sort_by(|a, b| a.y.partial_cmp(&b.y).unwrap());
         let min_y = sort_y.first().unwrap().y;
         let max_y = sort_y.last().unwrap().y;
@@ -122,18 +125,6 @@ impl Coordinates {
             dy
         };
         d / 10.0
-    }
-}
-
-impl From<Vec<(f64, f64)>> for Coordinates {
-    fn from(v: Vec<(f64, f64)>) -> Coordinates {
-        Coordinates(v.into_iter().map(|x| x.into()).collect())
-    }
-}
-
-impl AsRef<Vec<Coordinate>> for Coordinates {
-    fn as_ref(&self) -> &Vec<Coordinate> {
-        &self.0
     }
 }
 

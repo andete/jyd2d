@@ -15,6 +15,7 @@ pub enum Color {
     Orange,
     Grey,
     LightGrey,
+    DarkGrey,
 }
 
 impl Display for Color {
