@@ -1,9 +1,9 @@
 // (c) 2019 Joost Yervante Damad <joost@damad.be>
 
-use std::fmt::Write as FmtWrite;
-use std::vec::IntoIter;
-
 use simple_xml_serialize::XMLElement;
+
+use std::fmt::Write as FmtWrite;
+use std::iter::IntoIterator;
 
 use crate::color::Color;
 use crate::Coordinate;
@@ -18,6 +18,7 @@ pub struct Path {
     pub stroke_dash: Option<String>,
     pub name: String,
 }
+
 
 impl Path {
     pub fn new<T: Into<Coordinate>, U: ToString>(name: U, points: Vec<T>) -> Self {
@@ -38,7 +39,7 @@ impl Path {
         Self { stroke_width: Some(stroke_width), ..self }
     }
 
-    pub fn stroke_dash<T:ToString>(self, stroke_dash: T) -> Self {
+    pub fn stroke_dash<T: ToString>(self, stroke_dash: T) -> Self {
         Self { stroke_dash: Some(stroke_dash.to_string()), ..self }
     }
 }
@@ -59,6 +60,42 @@ impl Into<XMLElement> for Path {
             .attr_opt("stroke-width", self.stroke_width)
             .attr_opt("stroke-dasharray", self.stroke_dash)
             .element(Title(self.name))
+    }
+}
+
+pub struct PathBuilder {
+    points: Vec<(f64, f64)>,
+    last: (f64, f64),
+}
+
+impl PathBuilder {
+    pub fn new(x: f64, y: f64) -> PathBuilder {
+        PathBuilder { points: vec![(x, y)], last: (x, y) }
+    }
+
+    pub fn done(self) -> Vec<(f64, f64)> {
+        self.points
+    }
+
+    pub fn dx(mut self, dx: f64) -> PathBuilder {
+        let new = (self.last.0 + dx, self.last.1);
+        self.points.push(new);
+        self.last = new;
+        self
+    }
+
+    pub fn dy(mut self, dy: f64) -> PathBuilder {
+        let new = (self.last.0, self.last.1 + dy);
+        self.points.push(new);
+        self.last = new;
+        self
+    }
+
+    pub fn d(mut self, dx: f64, dy: f64) -> PathBuilder {
+        let new = (self.last.0 + dx, self.last.1 + dy);
+        self.points.push(new);
+        self.last = new;
+        self
     }
 }
 
@@ -106,7 +143,8 @@ impl Area {
         self.world.as_mut().map(|w| w.add(x));
     }
 
-    pub fn add_all<X: Into<XMLElement>>(&mut self, xn: IntoIter<X>) {
+    pub fn add_all<XN>(&mut self, xn: XN)
+        where XN: IntoIterator, XN::Item: Into<XMLElement> {
         self.world.as_mut().map(|w| w.add_all(xn));
     }
 }
@@ -240,7 +278,8 @@ impl World {
     pub fn add<X: Into<XMLElement>>(&mut self, x: X) {
         self.elements.push(x.into())
     }
-    pub fn add_all<X: Into<XMLElement>>(&mut self, xn: IntoIter<X>) {
+
+    pub fn add_all<XN>(&mut self, xn: XN) where XN: IntoIterator, XN::Item: Into<XMLElement> {
         xn.into_iter().for_each(|x| self.elements.push(x.into()))
     }
     pub fn axis_scale(self, axis_scale: f64) -> Self {
