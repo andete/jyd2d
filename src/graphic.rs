@@ -196,7 +196,6 @@ impl Into<XMLElement> for Circle {
             .attr("cy", self.cy)
             .attr("fill", self.fill)
             .attr("stroke", self.color)
-            .attr("stroke-width", 0.25)
     }
 }
 
